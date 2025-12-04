@@ -9,40 +9,49 @@ DIGITS = "0123456789ABCDEF"
 
 # Настройка цветовой схемы
 COLORS = {
-    'bg': '#f0f4f8',
-    'fg': '#2d3748',
-    'accent': '#4299e1',
-    'secondary': '#718096',
-    'success': '#48bb78',
-    'error': '#f56565',
-    'card_bg': '#ffffff',
-    'border': '#e2e8f0'
+    'bg': '#f0f4f8',                # Основной фоновый цвет (светло-серый с голубым оттенком)
+    'fg': '#2d3748',                # Основной цвет текста (темный серо-синий)
+    'accent': '#4299e1',            # Акцентный цвет (чистый синий) - для кнопок, ссылок
+    'secondary': '#718096',         # Вторичный текст (средне-серый) - подписи, пояснения
+    'success': '#48bb78',           # Цвет успеха (зеленый) - уведомления, подтверждения
+    'error': '#f56565',             # Цвет ошибки (красный) - ошибки, предупреждения
+    'card_bg': '#ffffff',           # Фон карточек/контейнеров (чистый белый)
+    'border': '#e2e8f0'             # Цвет границ (очень светлый серо-голубой)
 }
 
+
+'''     Перевод десятичного числа в указанную систему счисления.     '''
 def decimal_to_base(num, base):
-    """Перевод десятичного числа в указанную систему счисления."""
     if num == 0:
         return "0"
+    
     result = ""
+
     while num > 0:
         digit = num % base
         result = DIGITS[digit] + result
         num = num // base
+
     return result
 
+
+"""     Перевод числа из указанной системы в десятичную.        """
 def base_to_decimal(number, base):
-    """Перевод числа из указанной системы в десятичную."""
     number = str(number).upper()
     result = 0
+
     for char in number:
         if char not in DIGITS[:base]:
             return None
+        
         digit = DIGITS.index(char)
         result = result * base + digit
+
     return result
 
+
+"""     Валидация числа для указанной системы счисления.        """
 def validate_number(number, base):
-    """Валидация числа для указанной системы счисления."""
     if not number:
         return False, "Введите число"
     
@@ -50,10 +59,10 @@ def validate_number(number, base):
         return False, f"Максимальная длина: {MAX_LENGTH} символов"
     
     pattern = {
-        2: r'^[01]+$',
-        8: r'^[0-7]+$',
-        10: r'^[0-9]+$',
-        16: r'^[0-9A-Fa-f]+$'
+        2: r'^[01] + $',
+        8: r'^[0-7] + $',
+        10: r'^[0-9] + $',
+        16: r'^[0-9A-Fa-f] + $'
     }.get(base)
     
     if not pattern:
@@ -68,10 +77,22 @@ def validate_number(number, base):
         }
         return False, f"Для системы с основанием {base} допустимы: {error_messages[base]}"
     
-    return True, ""
+    return True, ""   # True - валидация прошла успешна, "" - сообщение об ошибках нет (пустая строка)
 
+
+"""     Отображение результата с цветом в зависимости от типа.      """
+def show_result(message, msg_type="success"):
+    colors = {
+        "success": COLORS['success'],
+        "error": COLORS['error'],
+        "info": COLORS['accent']
+    }
+
+    result_label.config(text=message, foreground=colors.get(msg_type, COLORS['fg']))
+
+
+"""     Основная функция конвертации.       """
 def convert_number():
-    """Основная функция конвертации."""
     # Получение данных
     number = entry_number.get().strip().upper()
     base_from = combo_base_from.get()
@@ -80,7 +101,7 @@ def convert_number():
     # Проверка на пустые поля
     if not number:
         show_result("Введите число для конвертации", "error")
-        return
+        return      # Просто return без значения - ранний выход так как ошибка уже показана, дальнейшие вычисления не нужны
     
     if not base_from or not base_to:
         show_result("Выберите системы счисления", "error")
@@ -112,24 +133,18 @@ def convert_number():
     # Добавляем в историю
     add_to_history(number, base_from, result, base_to)
 
-def show_result(message, msg_type="success"):
-    """Отображение результата с цветом в зависимости от типа."""
-    colors = {
-        "success": COLORS['success'],
-        "error": COLORS['error'],
-        "info": COLORS['accent']
-    }
-    result_label.config(text=message, foreground=colors.get(msg_type, COLORS['fg']))
 
+"""     Очистка всех полей.      """
 def clear_fields():
-    """Очистка всех полей."""
     entry_number.delete(0, tk.END)
     combo_base_from.set('')
     combo_base_to.set('')
+    
     show_result("Поля очищены", "info")
 
+
+"""     Добавление результата в историю.        """
 def add_to_history(original, from_base, converted, to_base):
-    """Добавление результата в историю."""
     history_text = f"{original} ({from_base}) → {converted} ({to_base})"
     history_listbox.insert(0, history_text)
     
@@ -137,27 +152,33 @@ def add_to_history(original, from_base, converted, to_base):
     if history_listbox.size() > 10:
         history_listbox.delete(10, tk.END)
 
+
+"""     Копирование результата в буфер обмена.      """
 def copy_to_clipboard():
-    """Копирование результата в буфер обмена."""
     result = result_label.cget("text")
+
     if result and not result.startswith("Поля"):
         window.clipboard_clear()
         window.clipboard_append(result.split(" = ")[-1].split(" (")[0] if " = " in result else result)
         status_label.config(text="Результат скопирован!", foreground=COLORS['success'])
         window.after(2000, lambda: status_label.config(text="Готов", foreground=COLORS['secondary']))
 
+
+"""     Обмен значениями систем счисления, свапаем из to в      """
 def swap_bases():
-    """Обмен значениями систем счисления."""
     from_val = combo_base_from.get()
     to_val = combo_base_to.get()
     combo_base_from.set(to_val)
     combo_base_to.set(from_val)
 
+
+"""     Обработка нажатия Enter для конвертации.        """
 def on_key_release(event):
-    """Обработка нажатия Enter для конвертации."""
     if event.keysym == 'Return':
         convert_number()
 
+
+'''     GUI      '''
 # Создание основного окна
 window = tk.Tk()
 window.title("Конвертер систем счисления")
