@@ -59,10 +59,10 @@ def validate_number(number, base):
         return False, f"Максимальная длина: {MAX_LENGTH} символов"
     
     pattern = {
-        2: r'^[01] + $',
-        8: r'^[0-7] + $',
-        10: r'^[0-9] + $',
-        16: r'^[0-9A-Fa-f] + $'
+        2: r'^[01]+$',
+        8: r'^[0-7]+$',
+        10: r'^[0-9]+$',
+        16: r'^[0-9A-Fa-f]+$'
     }.get(base)
     
     if not pattern:
